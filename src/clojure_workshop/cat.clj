@@ -11,8 +11,10 @@
 
 (defn- format-line
   "Formats lines with prefixed numbering"
-  [num line]
-  (format "%6d  %s" num line))
+    [num line]
+    (format "%6d  %s" num line))
+
+
 
 (defn- infinite-coll-from
   "Creates infinite lazy seq, starts with start integer, increments by one"
@@ -22,44 +24,56 @@
 (defn read-file
   "Reads a file from disk. What is the easiest way? (Opposite of spit)"
   [f]
-  nil)
+  (slurp f))
 
 (defn number-lines
-  "Takes state (potentially containg a current :line-count) and text  and formats it using format
+  "Takes state (potentially containg a current :line-cnt) and text  and formats it using format
   line. Where each line is prefixed with a its number starting with 1. Returns a vector containing
   a new state with a new :line-cnt, and the formatted-lines."
   [state text]
   (let [lines (split-retain-empty-lines text)
         ; Fetch :line-cnt from state map or return default, which should be 1
-        current-cnt 0
+        current-cnt (state :line-cnt 1)
         ; Convert/map over lines. All lines should get a number, use format-line to format.
         ; Hint: map can take several arguments (collections), and check out infinite-coll-from.
-        formatted-lines nil
+        line-numbers (range current-cnt (+ 1 current-cnt (count lines)))
+        formatted-lines (map format-line  line-numbers lines)
         ; What is the next count (for the next file)?
-        cnt 0]
+        cnt (+ current-cnt (count lines))]
     [(assoc state :line-cnt cnt)
      (string/join \newline formatted-lines)]))
 
+
+
+(defn build-numbered [start-cnt cs]
+  "go through seq of strings and return a tuple [cnt, numbered-pairs] where numbered-pairs is a vector
+  of tuples [line-number/nil s], The first non-empty s is assigned the 'start-cnt'"
+  (reduce (fn [[cnt pairs] s]
+          "for each non-empty string, update counter and add a tuple. The tuple as count and string, or nil and string"
+          (if (clojure.string/blank? s)
+            [cnt (conj pairs [nil, s])]
+            [(inc cnt) (conj pairs [cnt, s])]))
+        [start-cnt, []] cs))
+
+;;(build-numbered  4 '("one", "two", "", "three"))
+
+
 (defn number-non-blank-lines
-  "Takes state (potentially containg a current :line-count) and text and formats it using format
+  "Takes state (potentially containg a current :line-cnt) and text and formats it using format
   line. If a line is non-empty it will be prefixed with its number starting with 1. Returns a
   vector containing a new state with a new :line-cnt, and the formatted-lines."
   [state text]
   (let [lines (split-retain-empty-lines text)
         ; Fetch :line-cnt from state map or 1
-        current-cnt 0
+        current-cnt (:line-cnt state 1)
         ; Convert/map/reduce over lines. Only add numbering on lines with content. Use format-line to format.
-        ; In proposed solution, we fetch both formattes lines and the new cnt in the same function.
-        ;
-        ; Outline of solution (delete this if you want to try without help!)
-        ; 1. reduce over function with result: [cnt formatted-lines].
-        ; 2. initial 'val' is [current-cnt []] and reduce over lines
-        ; 3. fn destructures directly, e.g. [[cnt acc] s]
-        ; 4. Check if line is "". If so simply add line to result, don't increment cnt
-        ; 5. If line is not "", format it and return a vector with cnt incremented and formatted added to acc.
-        [cnt formatted-lines] [current-cnt []]]
+        numbered (build-numbered current-cnt lines)
+        cnt (first numbered)
+        s-count-pairs (second numbered)
+        conditional-formatting (fn [n s]  (if n (format-line n s) s))
+        ]
     [(assoc state :line-cnt cnt)
-     (string/join \newline formatted-lines)]))
+     (string/join \newline (map #(let [num (first %) s (second %)] (conditional-formatting num s)) s-count-pairs))]))
 
 
 (defn cat
@@ -73,7 +87,7 @@
     (:num-non-blank-lines state) (number-non-blank-lines state text)
     (:num-all-lines state) (number-lines state text)
     ; in else you should just return a vector of state and the text
-    :else nil))
+    :else [state text]))
 
 
 (defn cat-files
@@ -83,7 +97,12 @@
   3. Map each result vector over a function which fetches the second element of a the vector. Result is \"catted\" string.
   4. Join all these strings with \newline (check out clojure.string functions)"
   [opts files]
-  nil)
+  (let [content (map read-file files)
+        state-content (map #(cat opts %) content)
+        mcs (map second state-content)]
+    (string/join \newline mcs)))
+
+
 
 (defn cat-in
   "Loops over system/in until ctrl-d is pressed converting input to cat for each new line"

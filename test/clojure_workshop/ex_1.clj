@@ -5,28 +5,28 @@
 (defn __ [& args] false)
 (def ___ '())
 
-#_
+
 (deftest very-basic-types
   ; Which number is the same as 1? :)
-  (is (= 1 ___))
+  (is (= 1 1))
   ; A string number is not = to the same number
-  (is (__ "1" 1))
+  (is (not= "1" 1))
   ; A more lenient number comparison with ==
-  (is (__ 1 1.0))
+  (is (== 1 1.0))
   ; Only one thing is really true...
-  (is (true? ___))
+  (is (true? true))
   ; Now what is the concatenation of those Characters
-  (is (= (str \a \b \c) ___))
+  (is (= (str \a \b \c) "abc"))
   ; Use vector literal
-  (is (= '(1 2 3) ___))
+  (is (= '(1 2 3) [1 2 3]))
   ; Use list literal with a quote '
-  (is (= [1 2 3] ___))
+  (is (= [1 2 3] '(1 2 3)))
   ; Use list function
-  (is (= [1 2 3] ___))
+  (is (= [1 2 3] (list 1 2 3)))
   ; Use vector function
-  (is (= [1 2 3] ___)))
+  (is (= [1 2 3] (vector 1 2 3))))
 
-#_
+;;#_
 (deftest use-conjoin
   ; conjoin is a special function that works with most datastructures.
   ; It knows where the right place is to append an element.
@@ -34,25 +34,25 @@
   ; Oh, and by the way. 'are' creates a template (using a macro),
   ; for alle the following test form, which need to be in pairs in this case.
   (are [x y] (= x y)
-       (conj [1] 2) ___
-       (conj [1 2] 3 4) ___
-       (conj '(2 1) 3 4) ___
-       (conj #{2 1} 3 4) ___))
+       (conj [1] 2) [1 2]
+       (conj [1 2] 3 4) [1 2 3 4]
+       (conj '(2 1) 3 4) '(4 3 2 1) ;; ikke opplagt
+       (conj #{2 1} 3 4) #{2 1 3 4}))
 
-#_
+;;#_
 (deftest how-to-count-stuff
   (are [x y] (= x y)
-       ___ (count '(1 2 3 4 5))
-       ___ (count [1 2 3 4])
-       ___ (count (range 10))
-       ___ (count {:a 1, :b 2, :c 3, :d 4})
-       ___ (count "En banan")))
+       5 (count '(1 2 3 4 5))
+       4  (count [1 2 3 4])
+       10 (count (range 10))
+       4 (count {:a 1, :b 2, :c 3, :d 4})
+       8 (count "En banan")))
 
-#_
+;;#_
 (deftest how-to-find-length-of-something
   ; First class functions are so cool. Put in the right function in let
   ; and all assertions should be correct.
-  (let [f __]
+  (let [f (fn [x] (count x))]
     (are [x y] (= x y)
          (f '(1 2 3 3 1)) 5
          (f "Hello World") 11
@@ -60,92 +60,93 @@
          (f '(13)) 1
          (f '(:a :b :c)) 3)))
 
-#_
+;;#_
 (deftest using-if
   ; Lots of things are truthy, i.e. is handled as true in e.g. if expressions.
   (are [x y] (= x y)
        (if (> 1 0)
          true
-         false) ___
+         false) true
        (if (> 3 2 1)
          true
-         false) ___
+         false) true
 
        (if (> 3 2 3 1)
          true
-         false) ___
+         false) false
 
        (if nil
          true
-         false) ___
+         false) false
 
        (if true
          true
-         false) ___
+         false) true
 
        (if false
          true
-         false) ___
+         false) false
 
        (if '(1)
          true
-         false) ___
+         false) true
 
        (if '()
          true
-         false) ___
+         false) true
 
        (if (Object.)
          true
-         false) ___))
+         false) true))
 
-#_
+;;#_
 (deftest dealing-with-lists
   (are [x y] (= x y)
        ; Should be able to use one simple function call to get result, what are their positions in the list?
-       (__ '(1 2 3 4))  1
-       (__ '(1 2 3 4 5)) 5
+       (first '(1 2 3 4))  1
+       (count '(1 2 3 4 5)) 5
        ; Taking a part of a list is simple
-       (__ 2 '(1 2 3 4)) '(1 2)))
+       (take 2 '(1 2 3 4)) '(1 2)))
 
-#_
+;;#_
 (deftest doing-math
   (are [x y] (= x y)
        ; Here you should try to use the correct mathematical function to get the expected result
-       (__ 1 2 3 4) 10
-       (__ 4 3 2 1) -2
-       (__ 1 2 3 4) 24))
+       (+ 1 2 3 4) 10
+       (- 4 3 2 1) -2
+       (* 1 2 3 4) 24))
 
-#_
+;;#_
 (deftest math-on-lists
   (are [x y] (= x y)
        ; Here you should try to apply the correct mathematical function to get the expected result
-       (__ + [1 2 3 4]) 10
-       (__ - [4 3 2 1]) -2
-       (__ * [1 2 3 4]) 24))
+       (apply + [1 2 3 4]) 10
+       (apply - [4 3 2 1]) -2
+       (apply * [1 2 3 4]) 24))
 
-#_
+;;#_
 (deftest define-a-function-that-checks-string-longer-than
   ; Write a function in the let form that that checks that the input String is longer than number input.
-  (let [longer-than? __]
+  (let [longer-than? (fn [s n] (> (count s) n))]
     (are [x y] (= x y)
          (longer-than? "long string" 5) true
          (longer-than? "short" 5) false
          (longer-than? nil 2) false)))
 
 
+
 ;; The following two tests are a sneak peek of the next section
-#_
+;;#_
 (deftest how-to-filter-out-the-stuff-you-want
   (are [x y] (= x y)
        ; Filter is cool. Can you write or use a cool function to get correct result?
-       (filter __ '(1 2 3 4 5)) '(1 3 5)
-       (filter __ '(1 2 3 4 5)) '(2 4)))
+       (filter odd? '(1 2 3 4 5)) '(1 3 5)
+       (filter even? '(1 2 3 4 5)) '(2 4)))
 
-#_
+;;#_
 (deftest use-map-to-double-all-numbers-in-a-sequence
   ; Write a function in the let form that doubles its input
-  (let [dbl __]
+  (let [dbl #(* 2 %1)]
     (are [x y] (= x y)
          (map dbl '(1 2 3)) '(2 4 6)
          (map dbl '(5 10 15)) '(10 20 30))))

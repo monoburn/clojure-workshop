@@ -2,16 +2,16 @@
   (:use midje.sweet
         clojure-workshop.cat))
 
-#_
+;;#_
 (fact "read-file should actually read file contets"
       (read-file "test-resources/file1.txt") => "en\nto\ntre\n")
 
-#_
+;;#_
 (fact "cat should return its input and state in a vector"
       (cat {} "1\n2") => [{} "1\n2"]
       (cat {:state 1} "1\n2") => [{:state 1} "1\n2"])
 
-#_
+;;#_
 (facts "about cat-files"
 
   (fact "cat-files should be able to handle many files"
@@ -22,7 +22,7 @@
     (cat-files {} ["test-resources/file1.txt"]) => "res"
     (provided (cat {} anything) => [{} "res"] :times 1)))
 
-#_
+;;#_
 (facts "-n as option produces numbered lines"
 
   (fact "Should number all lines"
@@ -40,7 +40,9 @@
         (number-lines {} "en\nto") => [{:line-cnt 3} (str     "     1  en\n"
                                                               "     2  to")]))
 
-#_
+
+
+;;#_
 (facts "-b as option prduces numbered non-blank lines"
 
   (fact "Should number non-empty-lines"
