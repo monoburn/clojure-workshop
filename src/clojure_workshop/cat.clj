@@ -44,20 +44,6 @@
      (string/join \newline formatted-lines)]))
 
 
-
-(defn build-numbered [start-cnt cs]
-  "go through seq of strings and return a tuple [cnt, numbered-pairs] where numbered-pairs is a vector
-  of tuples [line-number/nil s], The first non-empty s is assigned the 'start-cnt'"
-  (reduce (fn [[cnt pairs] s]
-          "for each non-empty string, update counter and add a tuple. The tuple as count and string, or nil and string"
-          (if (clojure.string/blank? s)
-            [cnt (conj pairs [nil, s])]
-            [(inc cnt) (conj pairs [cnt, s])]))
-        [start-cnt, []] cs))
-
-;;(build-numbered  4 '("one", "two", "", "three"))
-
-
 (defn number-non-blank-lines
   "Takes state (potentially containg a current :line-cnt) and text and formats it using format
   line. If a line is non-empty it will be prefixed with its number starting with 1. Returns a
@@ -67,13 +53,17 @@
         ; Fetch :line-cnt from state map or 1
         current-cnt (:line-cnt state 1)
         ; Convert/map/reduce over lines. Only add numbering on lines with content. Use format-line to format.
-        numbered (build-numbered current-cnt lines)
+;        numbered (build-numbered current-cnt lines)
+        numbered (reduce (fn [[cnt pairs] s]
+                    (if (clojure.string/blank? s)
+                      [cnt (conj pairs s)]
+                      [(inc cnt) (conj pairs (format-line cnt s))]))
+                [current-cnt, []] lines)
+
         cnt (first numbered)
-        s-count-pairs (second numbered)
-        conditional-formatting (fn [n s]  (if n (format-line n s) s))
-        ]
+        formatted-lines (second numbered)]
     [(assoc state :line-cnt cnt)
-     (string/join \newline (map #(let [num (first %) s (second %)] (conditional-formatting num s)) s-count-pairs))]))
+     (string/join \newline formatted-lines)]))
 
 
 (defn cat
